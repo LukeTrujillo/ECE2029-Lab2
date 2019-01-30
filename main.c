@@ -61,10 +61,14 @@ unsigned int readButtons() {
     //buttons on P7.0(S1), P7.4 (S2), P2.4 (S3), P3.7 (S4)
     return ~(~(P7IN & (BIT0)) | ~(P3IN & (BIT6) >> 3) | ~(P2IN & (BIT2)) | ~(P7IN & (BIT4)));
 }
-void configUserLED(char inBits) {
-    P6SEL &= ~(BIT4 | BIT2 | BIT1 | BIT3);
-    P6DIR |= (BIT4 | BIT2 | BIT1 | BIT3);
-    P6OUT |= ((inBits << 3) & BIT4) | ((inBits << 1) & BIT2) | ((inBits >> 2) & BIT1) | ((inBits & BITS3));
+void configUserLED(char inbits) {
+    P1SEL &= ~(BIT0); //set select pin to 0, digital io on
+        P4SEL &= ~(BIT7);
+        P1DIR |= (BIT0); //set direction pin to 1, output
+        P4DIR |= (BIT7);
+                //turn target off, then set to inbitsTarget
+        P1OUT = (P1OUT & ~(BIT0)) | (inbits & BIT0); //set p1.0 to inbitsBIT0
+        P4OUT = (P4OUT & ~(BIT7)) | (inbits & BIT1); //set p4.7 to inbitsBIT1
 }
 
 

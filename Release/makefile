@@ -2,16 +2,12 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
-SHELL = cmd.exe
-
-CG_TOOL_ROOT := C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.3.LTS
+CG_TOOL_ROOT := /Applications/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
-"./float.obj" \
-"./integer.obj" \
 "./main.obj" \
 "./peripherals.obj" \
 "./switches.obj" \
@@ -27,8 +23,8 @@ $(GEN_CMDS__FLAG) \
 
 -include ../makefile.init
 
-RM := DEL /F
-RMDIR := RMDIR /S/Q
+RM := rm -rf
+RMDIR := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
@@ -149,17 +145,17 @@ all: Lab\ 2.out
 
 # Tool invocations
 Lab\ 2.out: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
-	@echo 'Building target: $@'
+	@echo 'Building target: "$@"'
 	@echo 'Invoking: MSP430 Linker'
-	"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.3.LTS/bin/cl430" -vmspx --abi=coffabi -O0 --define=__MSP430F5529__ --diag_warning=225 --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU23 --silicon_errata=CPU40 --printf_support=minimal -z -m"Lab 2.map" --stack_size=160 --heap_size=160 --use_hw_mpy=F5 -i"C:/ti/ccsv7/ccs_base/msp430/include" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.3.LTS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-msp430_16.9.3.LTS/include" --reread_libs --warn_sections --xml_link_info="Lab 2_linkInfo.xml" --rom_model -o "Lab 2.out" $(ORDERED_OBJS)
-	@echo 'Finished building target: $@'
+	"/Applications/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/bin/cl430" -vmspx --abi=coffabi -O0 --define=__MSP430F5529__ --diag_warning=225 --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU23 --silicon_errata=CPU40 --printf_support=minimal -z -m"Lab 2.map" --stack_size=160 --heap_size=160 --use_hw_mpy=F5 -i"/Applications/ti/ccsv8/ccs_base/msp430/include" -i"/Applications/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/lib" -i"/Applications/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.4.LTS/include" --reread_libs --warn_sections --xml_link_info="Lab 2_linkInfo.xml" --rom_model -o "Lab 2.out" $(ORDERED_OBJS)
+	@echo 'Finished building target: "$@"'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "float.obj" "integer.obj" "main.obj" "peripherals.obj" "switches.obj" "LcdDriver\HAL_MSP_EXP430FR5529_Sharp96x96.obj" "LcdDriver\Sharp96x96.obj" "fonts\fontfixed6x8.obj" "images\LPRocket_96x37.obj" "images\TI_Logo_69x64.obj" 
-	-$(RM) "float.d" "integer.d" "main.d" "peripherals.d" "switches.d" "LcdDriver\HAL_MSP_EXP430FR5529_Sharp96x96.d" "LcdDriver\Sharp96x96.d" "fonts\fontfixed6x8.d" "images\LPRocket_96x37.d" "images\TI_Logo_69x64.d" 
+	-$(RM) "main.obj" "peripherals.obj" "switches.obj" "LcdDriver/HAL_MSP_EXP430FR5529_Sharp96x96.obj" "LcdDriver/Sharp96x96.obj" "fonts/fontfixed6x8.obj" "images/LPRocket_96x37.obj" "images/TI_Logo_69x64.obj" 
+	-$(RM) "main.d" "peripherals.d" "switches.d" "LcdDriver/HAL_MSP_EXP430FR5529_Sharp96x96.d" "LcdDriver/Sharp96x96.d" "fonts/fontfixed6x8.d" "images/LPRocket_96x37.d" "images/TI_Logo_69x64.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

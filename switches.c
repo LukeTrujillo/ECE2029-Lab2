@@ -15,7 +15,7 @@ char switchIO();
     char result = switchIO();
 
     return 0;
-}
+}*/
 /*
  * P2.6-3 for digital IO
  * Disable pull resistors

@@ -70,7 +70,7 @@ void initLeds(void);
 void setLeds(unsigned char state);
 
 void configDisplay(void);
-void BuzzerOn(void);
+void BuzzerOn(char, char);
 void BuzzerOff(void);
 
 void configKeypad(void);
