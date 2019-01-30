@@ -89,7 +89,7 @@ void BuzzerOn(char period, char volume)
     // Configure CC register 5, which is connected to our PWM pin TB0.5
     TB0CCTL5  = OUTMOD_7;                   // Set/reset mode for PWM
     TB0CCTL5 &= ~CCIE;                      // Disable capture/compare interrupts
-    TB0CCR5   = TB0CCR0/2;                  // Configure a 50% duty cycle
+    TB0CCR5   = TB0CCR0;                  // Configure a 50% duty cycle
 }
 
 /*
