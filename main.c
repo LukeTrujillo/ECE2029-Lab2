@@ -13,93 +13,51 @@
 
 // Function Prototypes
 void swDelay(char numLoops);
+void configureButtons();
+unsigned int readButtons();
 
 // Declare globals here
 
 // Main
-void main(void)
-
-{
-    unsigned char currKey=0, dispSz = 3;
-    unsigned char dispThree[3];
-
-    // Define some local variables
-    float a_flt = 190.68;
-    int  test = 0x0600, i=0;     // In C prefix 0x means the number that follows is in hex
-    long unsigned X= 123456;    // No prefix so number is assumed to be in decimal
-    unsigned char myGrade='A';
-    unsigned char initial='S';
-    //unsigned char your_name[14] = "Your Name Here";
-                                    // What happens when you change the array length?
-                                    // What should it be? Do you need null terminator /n ?
-
-
+void main() {
     WDTCTL = WDTPW | WDTHOLD;    // Stop watchdog timer. Always need to stop this!!
-                                 // You can then configure it properly, if desired
 
-    // Some utterly useless instructions -- Step through them
-    // What size does the Code Composer MSP430 Compiler use for the
-    // following variable types? A float, an int, a long integer and a char?
-    a_flt = a_flt*test;
-    X = test+X;
-    test = test-myGrade;    // A number minus a letter?? What's actually going on here?
-                            // What value stored in myGrade (i.e. what's the ASCII code for "A")?
-                            // Thus, what is the new value of test? Explain?
+    configureButtons();
+    unsigned int x = 0;
+    while(1) {
+        x = readButtons();
 
-    // Useful code starts here
-    initLeds();
+       continue;
+    }
+}
 
-    configDisplay();
-    configKeypad();
+void configureButtons() {
+    //buttons on P7.0, P7.4, P2.4, P3.6
 
-    // *** Intro Screen ***
-    Graphics_clearDisplay(&g_sContext); // Clear the display
+    //configure switches for IO
+    P7SEL &= ~(BIT0 | BIT4);
+    P2SEL &= ~(BIT2);
+    P3SEL &= ~(BIT6);
 
-    // Write some text to the display
-    Graphics_drawStringCentered(&g_sContext, "Welcome", AUTO_STRING_LENGTH, 48, 15, TRANSPARENT_TEXT);
-    Graphics_drawStringCentered(&g_sContext, "to", AUTO_STRING_LENGTH, 48, 25, TRANSPARENT_TEXT);
-    Graphics_drawStringCentered(&g_sContext, "ECE204-C19!", AUTO_STRING_LENGTH, 48, 35, TRANSPARENT_TEXT);
+    //set them up for input
+    P7DIR &= ~(BIT0 | BIT4);
+    P2DIR &= ~(BIT2);
+    P3DIR &= ~(BIT6);
 
-    // Draw a box around everything because it looks nice
-    Graphics_Rectangle box = {.xMin = 5, .xMax = 91, .yMin = 5, .yMax = 91 };
-    Graphics_drawRectangle(&g_sContext, &box);
+    //enable the pull resistors
+    P7REN |= (BIT0 | BIT4);
+    P2REN |= (BIT2);
+    P3REN |= (BIT6);
 
-    // We are now done writing to the display.  However, if we stopped here, we would not
-    // see any changes on the actual LCD.  This is because we need to send our changes
-    // to the LCD, which then refreshes the display.
-    // Since this is a slow operation, it is best to refresh (or "flush") only after
-    // we are done drawing everything we need.
-    Graphics_flushBuffer(&g_sContext);
+    //specify that they should be pull resistors
+    P7OUT &= ~(BIT0 | BIT4);
+    P2OUT &= ~(BIT2);
+    P3OUT &= ~(BIT6);
+}
 
-    dispThree[0] = ' ';
-    dispThree[2] = ' ';
-
-    while (1)    // Forever loop
-    {
-        // Check if any keys have been pressed on the 3x4 keypad
-        currKey = getKey();
-        if (currKey == '*')
-            BuzzerOn();
-        if (currKey == '#')
-            BuzzerOff();
-        if ((currKey >= '0') && (currKey <= '9'))
-            setLeds(currKey - 0x30);
-
-        if (currKey)
-        {
-            dispThree[1] = currKey;
-            // Draw the new character to the display
-            Graphics_drawStringCentered(&g_sContext, dispThree, dispSz, 48, 55, OPAQUE_TEXT);
-
-            // Refresh the display so it shows the new data
-            Graphics_flushBuffer(&g_sContext);
-
-            // wait awhile before clearing LEDs
-            swDelay(1);
-            setLeds(0);
-        }
-
-    }  // end while (1)
+unsigned int readButtons() {
+    //buttons on P7.0(S1), P7.4 (S2), P2.4 (S3), P3.7 (S4)
+    return ~(~(P7IN & (BIT0)) | ~(P3IN & (BIT6) >> 3) | ~(P2IN & (BIT2)) | ~(P7IN & (BIT4)));
 }
 
 
