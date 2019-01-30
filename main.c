@@ -16,6 +16,8 @@ void swDelay(char numLoops);
 void configureButtons();
 unsigned int readButtons();
 
+void configUserLED(char inBits);
+
 // Declare globals here
 
 // Main
@@ -58,6 +60,11 @@ void configureButtons() {
 unsigned int readButtons() {
     //buttons on P7.0(S1), P7.4 (S2), P2.4 (S3), P3.7 (S4)
     return ~(~(P7IN & (BIT0)) | ~(P3IN & (BIT6) >> 3) | ~(P2IN & (BIT2)) | ~(P7IN & (BIT4)));
+}
+void configUserLED(char inBits) {
+    P6SEL &= ~(BIT4 | BIT2 | BIT1 | BIT3);
+    P6DIR |= (BIT4 | BIT2 | BIT1 | BIT3);
+    P6OUT |= ((inBits << 3) & BIT4) | ((inBits << 1) & BIT2) | ((inBits >> 2) & BIT1) | ((inBits & BITS3));
 }
 
 
