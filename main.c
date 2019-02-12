@@ -97,8 +97,8 @@ void main() {
 
         index++;  // next note
         // songScore /= index;
-        buttonPressed = 0; //reset button flags
-        currentNoteActualDuration = song[index].duration; //save current note length
+        buttonPressed = 0;
+        currentNoteActualDuration = song[index].duration;
         if (songScore < 50) index = 1000;  // if 3 seconds off, lose
         char str[10];
         sprintf(str, "%d", songScore);
