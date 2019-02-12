@@ -40,10 +40,10 @@ void makeNote(int position, int freq, int dur);
 void playNote(struct Note not);
 unsigned int getNoteNum(struct Note note);
 
-struct Note song[10];
+struct Note song[33];
 
 volatile int nextBeat = 0;
-int score = 100;
+int songScore = 100;
 
 // Main
 void main() {
@@ -64,13 +64,13 @@ void main() {
   welcomeScreen();
 
   int index = 0;        // current note
-  int songLength = 10;  // total note length in song
+  int songLength = 33;  // total note length in song
   int buttonPressed = 0;
   int timePassed = 0;
   int currentNoteActualDuration = song[index].duration;
-  int late = 0;
+  int noteScore = 0;
   nextBeat = 0;  // reset at start of actual game
-  score = 100;
+  songScore = 100;
   while (index < songLength) {
     if (nextBeat) {  // this should run about once every 0.005 seconds
       timePassed = nextBeat;
@@ -84,23 +84,24 @@ void main() {
         // check the buttons and if any are pressed, turn off led
         if (readButtons() == getNoteNum(song[index]) && buttonPressed == 0) {
           buttonPressed = 1;
-          late = (currentNoteActualDuration - song[index].duration) * 100 /
-                 currentNoteActualDuration;
-          score =
-              (10 * (100 - late) + 90 * score) / 100;  // alpha smoothing = 0.1
+          noteScore = 100- ((currentNoteActualDuration - song[index].duration) * 100 /
+                      currentNoteActualDuration);
+          songScore = (10 * (noteScore) + 90 * songScore) /
+                      100;  // alpha smoothing = 0.1
         }
       } else {
         // end of note
         if (buttonPressed == 0)
-          score = (90 * score) / 100;  // missed note, score drops 10%
+          songScore =
+              (90 * songScore) / 100;  // missed note, songScore drops 10%
 
         index++;  // next note
-        // score /= index;
-        buttonPressed = 0;
-        currentNoteActualDuration = song[index].duration;
-        if (score < 50) index = 1000;  // if 3 seconds off, lose
+        // songScore /= index;
+        buttonPressed = 0; //reset button flags
+        currentNoteActualDuration = song[index].duration; //save current note length
+        if (songScore < 50) index = 1000;  // if 3 seconds off, lose
         char str[10];
-        sprintf(str, "%d", score);
+        sprintf(str, "%d", songScore);
         Graphics_clearDisplay(&g_sContext);  // Clear the display
         Graphics_drawStringCentered(&g_sContext, str, AUTO_STRING_LENGTH, 48,
                                     15, TRANSPARENT_TEXT);
@@ -126,11 +127,11 @@ void playNote(struct Note note) { BuzzerOn(note.frequency, 100); }
 
 unsigned int getNoteNum(struct Note note) {
   unsigned int num = 0;
-  if (note.frequency <= 495) {
+  if (note.frequency <= 588) {
     num = 1;
-  } else if (note.frequency <= 587) {
+  } else if (note.frequency <= 700) {
     num = 2;
-  } else if (note.frequency <= 698) {
+  } else if (note.frequency <= 1000) {
     num = 4;
   } else {
     num = 8;
@@ -139,20 +140,48 @@ unsigned int getNoteNum(struct Note note) {
 }
 
 void makeSong() {
-  makeNote(0, 440, 100);  // A
-  makeNote(1, 494, 100);  // B
+  makeNote(0, 659, 50);   // E
+  makeNote(1, 587, 50);   // D
   makeNote(2, 523, 100);  // C
-  makeNote(3, 440, 100);  // A
-  makeNote(4, 523, 100);  // C
-  makeNote(5, 440, 100);  // A
-  makeNote(6, 523, 100);  // C
-  makeNote(7, 440, 100);  // A
-  makeNote(8, 523, 100);  // C
-  makeNote(9, 300, 100);  // END
+  makeNote(3, 659, 50);   // E
+  makeNote(4, 587, 50);   // D
+  makeNote(5, 523, 100);  // C
+
+  makeNote(6, 784, 50);    // G
+  makeNote(7, 698, 50);    // F
+  makeNote(8, 659, 100);   // E
+  makeNote(9, 784, 50);    // G
+  makeNote(10, 698, 50);   // F
+  makeNote(11, 659, 100);  // E
+
+  makeNote(12, 1046, 50 + 17);
+  makeNote(13, 880, 17);
+  makeNote(14, 988, 17);
+  makeNote(15, 1046, 17 * 2);
+  makeNote(16, 784, 17);
+  makeNote(17, 784, 50);
+
+  makeNote(18, 1046, 50 + 17);
+  makeNote(19, 880, 17);
+  makeNote(20, 988, 17);
+  makeNote(21, 1046, 17 * 2);
+  makeNote(22, 784, 17);
+  makeNote(23, 784, 50);
+
+  makeNote(24, 1046, 50 + 17);
+  makeNote(25, 880, 17);
+  makeNote(26, 988, 17);
+  makeNote(27, 1046, 17 * 2);
+  makeNote(28, 784, 17);
+  makeNote(29, 784, 50);
+
+  makeNote(30, 659, 50);   // E
+  makeNote(31, 587, 50);   // D
+  makeNote(32, 523, 100);  // C
 }
 
 void makeNote(int position, int freq, int dur) {  // shorthand for note creation
-  song[position].duration = dur * 2;
+  song[position].duration = dur * 4;
   song[position].frequency = freq;
 };
 
@@ -234,7 +263,8 @@ void welcomeScreen() {
     Graphics_drawStringCentered(&g_sContext, "3", AUTO_STRING_LENGTH, 48, 15,
                                 TRANSPARENT_TEXT);
     Graphics_flushBuffer(&g_sContext);
-    writeLED((unsigned int)(rand() % 7)+1);  // chooses some random leds to light
+    writeLED((unsigned int)(rand() % 7) +
+             1);  // chooses some random leds to light
   }
 
   Graphics_clearDisplay(&g_sContext);
@@ -242,7 +272,7 @@ void welcomeScreen() {
     Graphics_drawStringCentered(&g_sContext, "2", AUTO_STRING_LENGTH, 48, 15,
                                 TRANSPARENT_TEXT);
     Graphics_flushBuffer(&g_sContext);
-    writeLED((unsigned int)(rand() % 3)+1);
+    writeLED((unsigned int)(rand() % 3) + 1);
   }
 
   Graphics_clearDisplay(&g_sContext);
@@ -260,11 +290,11 @@ void win() {
   Graphics_clearDisplay(&g_sContext);  // Clear the display
   nextBeat = 0;
   char str[10];
-  sprintf(str, "%d", score);
+  sprintf(str, "%d", songScore);
   Graphics_drawStringCentered(&g_sContext, "YOU WIN", AUTO_STRING_LENGTH, 48,
                               15, TRANSPARENT_TEXT);
-  Graphics_drawStringCentered(&g_sContext, "Score:", AUTO_STRING_LENGTH, 48, 25,
-                              TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, "score:", AUTO_STRING_LENGTH, 48,
+                              25, TRANSPARENT_TEXT);
   Graphics_drawStringCentered(&g_sContext, str, AUTO_STRING_LENGTH, 48, 35,
                               TRANSPARENT_TEXT);
   Graphics_flushBuffer(&g_sContext);
@@ -278,11 +308,11 @@ void lose() {
   Graphics_clearDisplay(&g_sContext);  // Clear the display
   nextBeat = 0;
   char str[10];
-  sprintf(str, "%d", score);
+  sprintf(str, "%d", songScore);
   Graphics_drawStringCentered(&g_sContext, "YOU LOSE", AUTO_STRING_LENGTH, 48,
                               15, TRANSPARENT_TEXT);
-  Graphics_drawStringCentered(&g_sContext, "Score:", AUTO_STRING_LENGTH, 48, 25,
-                              TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, "score:", AUTO_STRING_LENGTH, 48,
+                              25, TRANSPARENT_TEXT);
   Graphics_drawStringCentered(&g_sContext, str, AUTO_STRING_LENGTH, 48, 35,
                               TRANSPARENT_TEXT);
   Graphics_flushBuffer(&g_sContext);
@@ -295,10 +325,10 @@ void lose() {
 }
 
 void buzzerDuration(int freq, int duration) {
-    BuzzerOn(freq,100);
-    nextBeat = 0;
-    while(nextBeat < duration) { //wait
-        //do nothing
-    }
-    BuzzerOff();
+  BuzzerOn(freq, 100);
+  nextBeat = 0;
+  while (nextBeat < duration) {  // wait
+    // do nothing
+  }
+  BuzzerOff();
 }
