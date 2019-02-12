@@ -71,8 +71,9 @@ void setLeds(unsigned char state)
  * Enable a PWM-controlled buzzer on P3.5
  * This function makes use of TimerB0.
  */
-void BuzzerOn(char period, char volume)
+void BuzzerOn(int frequency, char volume)
 {
+    int period = 32768/frequency;
     // Initialize PWM output on P3.5, which corresponds to TB0.5
     P3SEL |= BIT5; // Select peripheral output mode for P3.5
     P3DIR |= BIT5;

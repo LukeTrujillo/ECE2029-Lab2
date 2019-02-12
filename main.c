@@ -30,6 +30,8 @@ unsigned int led = 0x00;
 struct Note {
   int frequency, duration;
 };
+
+void makeNote(int position, int freq, int dur);
 void playNote(struct Note not);
 
 struct Note song[10];
@@ -45,32 +47,35 @@ void main() {
   configureButtons();
   makeSong();
 
-  // setup the timer here
-  int index = 0;
+  //---------------TIMER SETUP----------------------
+  TA2CTL = TASSEL_1 | MC_1 | ID_0;  // clock: ACLK:32768 Hz, upmode, divider=1
+  TA2CCR0 = 327;  // interrupt every 327 clicks (~0.01 seconds)
 
-  TA2CTL = TASSEL_1 | MC_1 | ID_0;
-  TA2CCR0 = 327;
-
-  TA2CCTL0 = CCIE;
+  TA2CCTL0 = CCIE;  // enable interrupt
   //-----------------------------------------------
 
-  while (index < 10) {
-    if (nextBeat) {
-      nextBeat = 0;
+  int index = 0;        // current note
+  int songLength = 10;  // total note length in song
+  while (index < songLength) {
+    if (nextBeat) {  // this should run about once every 0.01 seconds
+      nextBeat = 0;  // reset timer flag
 
-      if (song[index].duration > 0) {
-        song[index].duration--;
+      if (song[index].duration >
+          0) {  // if this note still has playing time left
+        song[index]
+            .duration--;  // decrease the amount of time left in this note
       } else {
-        index++;
+        index++;  // next note
       }
     }
-    playNote(song[index]);
+    playNote(song[index]);  // actually play the needed sound
   }
+  BuzzerOff();
 }
 void playNote(struct Note note) {
   BuzzerOn(note.frequency, 100);
 
-  if (note.frequency <= 494) {
+  if (note.frequency <= 495) {
     writeLED(1);
   } else if (note.frequency <= 587) {
     writeLED(2);
@@ -82,32 +87,22 @@ void playNote(struct Note note) {
 }
 
 void makeSong() {
-  song[0].duration = 500;
-  song[0].frequency = 440;
-
-  song[1].duration = 500;
-  song[1].frequency = 1000;
-
-  song[3].duration = 500;
-  song[3].frequency = 440;
-
-  song[4].duration = 500;
-  song[4].frequency = 1000;
-
-  song[5].duration = 500;
-  song[5].frequency = 440;
-
-  song[6].duration = 500;
-  song[6].frequency = 1000;
-  song[7].duration = 500;
-  song[7].frequency = 440;
-
-  song[8].duration = 500;
-  song[8].frequency = 1000;
-
-  song[9].duration = 500;
-  song[9].frequency = 440;
+  makeNote(0, 440, 100);  // A
+  makeNote(1, 494, 100);  // B
+  makeNote(2, 523, 100);  // C
+  makeNote(3, 440, 100);  // A
+  makeNote(4, 523, 100);  // C
+  makeNote(5, 440, 100);  // A
+  makeNote(6, 523, 100);  // C
+  makeNote(7, 440, 100);  // A
+  makeNote(8, 523, 100);  // C
+  makeNote(9, 300, 100);  // END
 }
+
+void makeNote(int position, int freq, int dur) {  // shorthand for note creation
+  song[position].duration = dur;
+  song[position].frequency = freq;
+};
 
 // Example syntax for TimerA2 ISR
 #pragma vector = TIMER2_A0_VECTOR
