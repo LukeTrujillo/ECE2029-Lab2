@@ -277,8 +277,14 @@ void win() {
 void lose() {
   Graphics_clearDisplay(&g_sContext);  // Clear the display
   nextBeat = 0;
+  char str[10];
+  sprintf(str, "%d", score);
   Graphics_drawStringCentered(&g_sContext, "YOU LOSE", AUTO_STRING_LENGTH, 48,
                               15, TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, "Score:", AUTO_STRING_LENGTH, 48, 25,
+                              TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, str, AUTO_STRING_LENGTH, 48, 35,
+                              TRANSPARENT_TEXT);
   Graphics_flushBuffer(&g_sContext);
   BuzzerOn(1000, 100);
   while (getKey() != '#') {
