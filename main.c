@@ -33,6 +33,7 @@ struct Note {
 
 void makeNote(int position, int freq, int dur);
 void playNote(struct Note not);
+unsigned int getNoteNum(struct Note note);
 
 struct Note song[10];
 
@@ -49,41 +50,57 @@ void main() {
 
   //---------------TIMER SETUP----------------------
   TA2CTL = TASSEL_1 | MC_1 | ID_0;  // clock: ACLK:32768 Hz, upmode, divider=1
-  TA2CCR0 = 327;  // interrupt every 327 clicks (~0.01 seconds)
+  TA2CCR0 = 164;  // interrupt every 164 clicks (~0.005 seconds)
 
   TA2CCTL0 = CCIE;  // enable interrupt
   //-----------------------------------------------
 
   int index = 0;        // current note
   int songLength = 10;  // total note length in song
+  int buttonPressed = 0;
+  int timePassed = 0;
   while (index < songLength) {
-    if (nextBeat) {  // this should run about once every 0.01 seconds
+    if (nextBeat) {  // this should run about once every 0.005 seconds
+      timePassed = nextBeat;
       nextBeat = 0;  // reset timer flag
 
-      if (song[index].duration >
-          0) {  // if this note still has playing time left
-        song[index]
-            .duration--;  // decrease the amount of time left in this note
+      if (song[index].duration > 0) {
+        // if this note still has playing time left
+        // decrease the amount of time left in this note
+        song[index].duration -= timePassed;
+
+        // check the buttons and if any are pressed, turn off led
+        if (readButtons() == getNoteNum(song[index])) {
+          buttonPressed = 1;
+        }
       } else {
         index++;  // next note
+        buttonPressed = 0;
+      }
+      if (buttonPressed) {
+        writeLED(0);
+      } else {
+        writeLED(getNoteNum(song[index]));
       }
     }
     playNote(song[index]);  // actually play the needed sound
   }
   BuzzerOff();
 }
-void playNote(struct Note note) {
-  BuzzerOn(note.frequency, 100);
+void playNote(struct Note note) { BuzzerOn(note.frequency, 100); }
 
+unsigned int getNoteNum(struct Note note) {
+  unsigned int num = 0;
   if (note.frequency <= 495) {
-    writeLED(1);
+    num = 1;
   } else if (note.frequency <= 587) {
-    writeLED(2);
+    num = 2;
   } else if (note.frequency <= 698) {
-    writeLED(4);
+    num = 4;
   } else {
-    writeLED(8);
+    num = 8;
   }
+  return num;
 }
 
 void makeSong() {
@@ -100,7 +117,7 @@ void makeSong() {
 }
 
 void makeNote(int position, int freq, int dur) {  // shorthand for note creation
-  song[position].duration = dur;
+  song[position].duration = dur * 2;
   song[position].frequency = freq;
 };
 
@@ -144,7 +161,8 @@ void configUserLED() {
 }
 void writeLED(unsigned int val) {
   P6OUT &= ~(BIT2 | BIT1 | BIT3 | BIT4);
-
+  // set all to off
+  // if passed 0, will turn everything off
   if ((val & BIT0) != 0) {
     P6OUT |= BIT2;
   }
