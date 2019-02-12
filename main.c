@@ -3,6 +3,8 @@
 /***************************************************/
 
 #include <msp430.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Peripherals.c and .h are where the functions that implement
  * the LEDs and keypad, etc are. It is often useful to organize
@@ -23,6 +25,9 @@ void writeLED(unsigned int);
 void buzz(unsigned int);
 
 void makeSong();
+void welcomeScreen();
+void win();
+void lose();
 
 // Declare globals here
 unsigned int led = 0x00;
@@ -38,6 +43,7 @@ unsigned int getNoteNum(struct Note note);
 struct Note song[10];
 
 volatile int nextBeat = 0;
+int score = 100;
 
 // Main
 void main() {
@@ -55,10 +61,16 @@ void main() {
   TA2CCTL0 = CCIE;  // enable interrupt
   //-----------------------------------------------
 
+  welcomeScreen();
+
   int index = 0;        // current note
   int songLength = 10;  // total note length in song
   int buttonPressed = 0;
   int timePassed = 0;
+  int currentNoteActualDuration = song[index].duration;
+  int late = 0;
+  nextBeat = 0;  // reset at start of actual game
+  score = 100;
   while (index < songLength) {
     if (nextBeat) {  // this should run about once every 0.005 seconds
       timePassed = nextBeat;
@@ -70,12 +82,29 @@ void main() {
         song[index].duration -= timePassed;
 
         // check the buttons and if any are pressed, turn off led
-        if (readButtons() == getNoteNum(song[index])) {
+        if (readButtons() == getNoteNum(song[index]) && buttonPressed == 0) {
           buttonPressed = 1;
+          late = (currentNoteActualDuration - song[index].duration) * 100 /
+                 currentNoteActualDuration;
+          score =
+              (10 * (100 - late) + 90 * score) / 100;  // alpha smoothing = 0.1
         }
       } else {
+        // end of note
+        if (buttonPressed == 0)
+          score = (90 * score) / 100;  // missed note, score drops 10%
+
         index++;  // next note
+        // score /= index;
         buttonPressed = 0;
+        currentNoteActualDuration = song[index].duration;
+        if (score < 50) index = 1000;  // if 3 seconds off, lose
+        char str[10];
+        sprintf(str, "%d", score);
+        Graphics_clearDisplay(&g_sContext);  // Clear the display
+        Graphics_drawStringCentered(&g_sContext, str, AUTO_STRING_LENGTH, 48,
+                                    15, TRANSPARENT_TEXT);
+        Graphics_flushBuffer(&g_sContext);
       }
       if (buttonPressed) {
         writeLED(0);
@@ -86,6 +115,12 @@ void main() {
     playNote(song[index]);  // actually play the needed sound
   }
   BuzzerOff();
+  if (index == songLength) {
+    win();
+  } else {
+    lose();
+  }
+  return main();
 }
 void playNote(struct Note note) { BuzzerOn(note.frequency, 100); }
 
@@ -123,7 +158,7 @@ void makeNote(int position, int freq, int dur) {  // shorthand for note creation
 
 // Example syntax for TimerA2 ISR
 #pragma vector = TIMER2_A0_VECTOR
-__interrupt void TIMERA2_ISR(void) { nextBeat = 1; }
+__interrupt void TIMERA2_ISR(void) { nextBeat++; }
 
 void showLEDs(unsigned int val) {}
 void configureButtons() {
@@ -175,4 +210,89 @@ void writeLED(unsigned int val) {
   if ((val & BIT3) != 0) {
     P6OUT |= BIT4;
   }
+}
+
+void welcomeScreen() {
+  configDisplay();
+  configKeypad();
+  Graphics_clearDisplay(&g_sContext);  // Clear the display
+  Graphics_drawStringCentered(&g_sContext, "Welcome", AUTO_STRING_LENGTH, 48,
+                              15, TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, "to", AUTO_STRING_LENGTH, 48, 25,
+                              TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, "MSP430 Hero", AUTO_STRING_LENGTH,
+                              48, 35, TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, "(* to start)", AUTO_STRING_LENGTH,
+                              48, 45, TRANSPARENT_TEXT);
+  Graphics_flushBuffer(&g_sContext);
+
+  while (getKey() != '*') BuzzerOff();  // essentially do nothing
+
+  Graphics_clearDisplay(&g_sContext);  // Clear the display
+  nextBeat = 0;
+  while (nextBeat < 200) {
+    Graphics_drawStringCentered(&g_sContext, "3", AUTO_STRING_LENGTH, 48, 15,
+                                TRANSPARENT_TEXT);
+    Graphics_flushBuffer(&g_sContext);
+    writeLED((unsigned int)(rand() % 7)+1);  // chooses some random leds to light
+  }
+
+  Graphics_clearDisplay(&g_sContext);
+  while (nextBeat < 400) {
+    Graphics_drawStringCentered(&g_sContext, "2", AUTO_STRING_LENGTH, 48, 15,
+                                TRANSPARENT_TEXT);
+    Graphics_flushBuffer(&g_sContext);
+    writeLED((unsigned int)(rand() % 3)+1);
+  }
+
+  Graphics_clearDisplay(&g_sContext);
+  while (nextBeat < 600) {
+    Graphics_drawStringCentered(&g_sContext, "1", AUTO_STRING_LENGTH, 48, 15,
+                                TRANSPARENT_TEXT);
+    Graphics_flushBuffer(&g_sContext);
+    writeLED((unsigned int)(rand() % 2));
+  }
+
+  Graphics_clearDisplay(&g_sContext);  // Clear the display
+}
+
+void win() {
+  Graphics_clearDisplay(&g_sContext);  // Clear the display
+  nextBeat = 0;
+  char str[10];
+  sprintf(str, "%d", score);
+  Graphics_drawStringCentered(&g_sContext, "YOU WIN", AUTO_STRING_LENGTH, 48,
+                              15, TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, "Score:", AUTO_STRING_LENGTH, 48, 25,
+                              TRANSPARENT_TEXT);
+  Graphics_drawStringCentered(&g_sContext, str, AUTO_STRING_LENGTH, 48, 35,
+                              TRANSPARENT_TEXT);
+  Graphics_flushBuffer(&g_sContext);
+  while (getKey() != '#') {
+    writeLED((unsigned int)(rand() % 15));  // glittery lights
+  }
+  writeLED(0);
+}
+
+void lose() {
+  Graphics_clearDisplay(&g_sContext);  // Clear the display
+  nextBeat = 0;
+  Graphics_drawStringCentered(&g_sContext, "YOU LOSE", AUTO_STRING_LENGTH, 48,
+                              15, TRANSPARENT_TEXT);
+  Graphics_flushBuffer(&g_sContext);
+  BuzzerOn(1000, 100);
+  while (getKey() != '#') {
+    // no fun lights for you
+  }
+  BuzzerOff();
+  writeLED(0);
+}
+
+void buzzerDuration(int freq, int duration) {
+    BuzzerOn(freq,100);
+    nextBeat = 0;
+    while(nextBeat < duration) { //wait
+        //do nothing
+    }
+    BuzzerOff();
 }
